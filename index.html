@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#1a0d0d">
+<title>Buscando a Popi</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#120808;color:#fff;font-family:"Trebuchet MS",system-ui,-apple-system,sans-serif;touch-action:manipulation;overscroll-behavior:none}
+.screen{position:absolute;inset:0;display:none}
+.screen.active{display:flex}
+#game.active{display:block}
+.btn{font:800 20px "Trebuchet MS",system-ui,sans-serif;color:#3a1a00;background:linear-gradient(#ffe27a,#ffb22e);border:0;border-radius:999px;padding:14px 30px;box-shadow:0 5px 0 #b8741a,0 10px 18px #0006;cursor:pointer;touch-action:manipulation}
+.btn:active{transform:translateY(3px);box-shadow:0 2px 0 #b8741a}
+.btn.big{font-size:26px;padding:18px 34px;width:100%}
+.btn.ghost{background:#ffffff22;color:#fff;box-shadow:none;border:2px solid #fff6;padding:10px 18px;font-size:15px}
+
+/* TÍTULO / FINAL / GAME OVER */
+#title,#over,#win{align-items:center;justify-content:center;text-align:center;padding:24px;background:radial-gradient(circle at 50% 30%,#7a1f2b,#2a0b10 70%,#120808)}
+.wrap{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:420px}
+.wrap h1{margin:0;font-size:38px;line-height:1.05;color:#ffe27a;text-shadow:0 3px 0 #8a2231,0 6px 14px #000a}
+.wrap p{margin:0;font-size:17px;color:#ffe9c9;opacity:.9;line-height:1.35}
+.bounce{animation:bounce 1.6s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-14px) rotate(3deg)}}
+.sad{animation:sad 2.4s ease-in-out infinite;filter:grayscale(.5)}
+@keyframes sad{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) translateY(4px)}}
+
+/* HISTORIA */
+#story{background:#000;flex-direction:column}
+.sImg{position:absolute;inset:0;overflow:hidden;background:#000;animation:fin .6s}
+.sImg img,.sImg .ph{width:100%;height:100%;object-fit:cover;display:block}
+.sImg.kb img,.sImg.kb .ph{animation:kb 10s ease-out forwards}
+.ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:linear-gradient(160deg,#3a1a22,#1c1030);font-size:22px;font-weight:800;color:#ffe9c9;text-align:center;padding:30px}
+.ph small{font-size:14px;font-weight:600;opacity:.7}
+@keyframes kb{from{transform:scale(1)}to{transform:scale(1.08)}}
+@keyframes fin{from{opacity:0}to{opacity:1}}
+.sTxt{position:absolute;left:0;right:0;bottom:90px;padding:40px 22px 14px;font-size:19px;line-height:1.35;text-align:center;text-shadow:0 2px 6px #000;background:linear-gradient(transparent,#000c)}
+.sBar{position:absolute;left:0;right:0;bottom:0;padding:12px 18px max(16px,env(safe-area-inset-bottom));display:flex;align-items:center;justify-content:space-between;gap:10px;background:#000a}
+#sDots{display:flex;gap:6px;flex-wrap:wrap;max-width:50%}
+#sDots i{width:9px;height:9px;border-radius:50%;background:#fff4}
+#sDots i.on{background:#ffd54a}
+.skip{position:absolute;top:max(12px,env(safe-area-inset-top));right:12px}
+
+/* JUEGO */
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#hud{position:absolute;top:0;left:0;right:0;padding:max(8px,env(safe-area-inset-top)) 12px 6px;display:flex;align-items:center;justify-content:space-between;gap:8px;pointer-events:none;font-weight:800;font-size:14px;text-shadow:0 2px 4px #000}
+#hudProg{display:flex;gap:4px}
+#hudProg i{width:10px;height:10px;border-radius:50%;background:#ffffff3a;border:1px solid #fff5}
+#hudProg i.d{background:#ffd54a}
+#hudProg i.c{background:#fff;box-shadow:0 0 8px #fff}
+#hudTime{min-width:56px;text-align:right}
+#hudTime.low{color:#ff6b5e}
+#qBox{display:none;position:absolute;top:max(40px,calc(env(safe-area-inset-top) + 32px));left:10px;right:10px;padding:12px 14px;border-radius:16px;background:#150a0ae6;border:2px solid #ffcf4a88;text-align:center;font-size:18px;font-weight:700;line-height:1.25;pointer-events:none;box-shadow:0 8px 20px #0008;max-height:24vh;overflow:hidden}
+#hint{display:none;position:absolute;left:0;right:0;bottom:max(18px,env(safe-area-inset-bottom));text-align:center;font-size:14px;font-weight:700;opacity:.85;text-shadow:0 2px 4px #000;pointer-events:none}
+#banner{position:absolute;left:0;right:0;top:40%;text-align:center;font-size:40px;font-weight:900;color:#ffe27a;text-shadow:0 4px 0 #8a2231,0 8px 18px #000;opacity:0;transform:scale(.6);transition:all .35s;pointer-events:none}
+#banner.on{opacity:1;transform:scale(1)}
+#mission{display:none;position:absolute;inset:0;background:#000a;align-items:center;justify-content:center;padding:12px}
+#mission.on{display:flex}
+#mission .card{width:min(100%,430px);height:min(100%,640px);display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:22px;background:#1a0f0cf5;border:2px solid #ffcf4a66;box-shadow:0 14px 40px #000a}
+#mTitle{margin:0;font-size:21px;color:#ffe27a;text-align:center}
+#mDesc{margin:0;text-align:center;font-size:15px;line-height:1.3;color:#ffe9c9;min-height:40px}
+#mgBody{flex:1;min-height:0;display:flex;flex-direction:column;position:relative}
+.popBig{margin:auto;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.clue{font-size:17px;font-weight:700;color:#fff;max-width:300px;line-height:1.3}
+.mgInfo{text-align:center;font-weight:800;font-size:17px;padding:4px 0;min-height:30px}
+.mgArea{flex:1;min-height:0;position:relative;overflow:hidden;border-radius:16px;background:#ffffff10;border:1px solid #ffffff22;touch-action:none;display:flex;flex-direction:column;justify-content:center;gap:14px;padding:0}
+.mgArea canvas{display:block;border-radius:16px}
+.kernel{position:absolute;border-radius:50% 50% 46% 46%;background:radial-gradient(circle at 35% 30%,#fff8c4,#f7d548 55%,#d9a41c);box-shadow:0 3px 8px #0008;animation:pop .18s ease-out;touch-action:none}
+@keyframes pop{from{transform:scale(.2)}to{transform:scale(1)}}
+.oddGrid{display:grid;gap:6px;margin:auto}
+.cell{display:flex;align-items:center;justify-content:center;background:#ffffff1c;border-radius:12px;cursor:pointer}
+.cell:active{background:#ffffff44}
+.pads{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px;height:100%}
+.pad{border-radius:20px;opacity:.5;transition:opacity .1s,transform .1s,filter .1s}
+.pad.on{opacity:1;filter:brightness(1.5);transform:scale(.95)}
+.bar{position:relative;height:60px;margin:0 14px;background:#000a;border-radius:16px;border:2px solid #fff5}
+.zone{position:absolute;top:0;bottom:0;background:#37d65c99;border-left:3px solid #7dff9b;border-right:3px solid #7dff9b}
+.mark{position:absolute;top:-8px;bottom:-8px;width:8px;margin-left:-4px;background:#fff;border-radius:4px;box-shadow:0 0 10px #fff}
+.mgArea .btn.big{width:auto;margin:0 14px}
+.heatBar{height:46px;margin:0 14px;background:#000a;border-radius:16px;border:2px solid #fff5;overflow:hidden}
+.heatFill{height:100%;width:20%;background:linear-gradient(90deg,#ffd54a,#ff7a1a,#ff3b2e)}
+.mashTime{text-align:center;font-weight:800;font-size:18px}
+.mashBtn{padding:34px 20px!important}
+</style>
+</head>
+<body>
+
+<div id="title" class="screen active">
+  <div class="wrap">
+    <div id="titlePop" class="bounce"></div>
+    <h1 id="gameTitle"></h1>
+    <p>Un pochoclo se perdió… ¿Lo ayudás a encontrar el camino de vuelta?</p>
+    <button class="btn" id="btnPlay">▶ Jugar</button>
+  </div>
+</div>
+
+<div id="story" class="screen">
+  <div id="sImg" class="sImg"></div>
+  <div id="sTxt" class="sTxt"></div>
+  <div class="sBar"><div id="sDots"></div><button class="btn" id="sNext">Siguiente ▶</button></div>
+  <button id="sSkip" class="btn ghost skip">Saltar ⏭</button>
+</div>
+
+<div id="game" class="screen">
+  <canvas id="cv"></canvas>
+  <div id="hud"><span id="hudRoom"></span><span id="hudProg"></span><span id="hudTime"></span></div>
+  <div id="qBox"><div id="qText"></div></div>
+  <div id="hint">Tocá la puerta correcta · arrastrá para mirar alrededor</div>
+  <div id="banner"></div>
+  <div id="mission">
+    <div class="card">
+      <h2 id="mTitle"></h2>
+      <p id="mDesc"></p>
+      <div id="mgBody"></div>
+      <button class="btn" id="mBtn"></button>
+    </div>
+  </div>
+</div>
+
+<div id="over" class="screen">
+  <div class="wrap">
+    <div id="overPop" class="sad"></div>
+    <h1 id="overTitle">¡Perdiste!</h1>
+    <p id="overMsg"></p>
+    <button class="btn" id="btnRetry">Reintentar</button>
+  </div>
+</div>
+
+<div id="win" class="screen">
+  <div class="wrap">
+    <div id="winPop" class="bounce"></div>
+    <h1>¡Lo encontraste!</h1>
+    <p id="winMsg"></p>
+    <button class="btn" id="btnAgain">Jugar de nuevo</button>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   ★★★ 1) CONFIGURACIÓN GENERAL ★★★
+   ===================================================================== */
+const TITULO = "Buscando a Popi";
+
+// Si es true, al perder se vuelve a empezar desde la habitación 1.
+// Si es false, se reintenta solo la habitación en la que perdiste.
+const REINICIAR_DESDE_EL_PRINCIPIO = true;
+
+// Tiempo (en segundos) para elegir puerta en cada habitación (10 valores).
+// Poné TEMPORIZADOR = false para quitarlo.
+const TEMPORIZADOR = true;
+const TIEMPOS = [60, 55, 50, 45, 40, 35, 30, 28, 25, 20];
+
+// Mientras probás: poné true y se marca con un ✅ cuál es la puerta correcta.
+const MODO_PRUEBA = false;
+
+const TEXTO_FINAL = "Popi volvió a casa sano y salvo gracias a vos. ¡Sos un/a campeón/a!";
+
+/* =====================================================================
+   ★★★ 2) HISTORIA (FOTOS) ★★★
+   Poné acá tus fotos. Podés usar:
+     - el nombre de un archivo al lado del html:   foto: "foto1.jpg"
+     - una URL:                                    foto: "https://..."
+     - una imagen en base64 (data:image/...)
+   "texto" es opcional (se muestra abajo de la foto). Dejalo "" para no mostrar nada.
+   Agregá o borrá bloques { foto:"", texto:"" } a gusto.
+   ===================================================================== */
+const HISTORIA = [
+  { foto: "", texto: "" },   // ← FOTO 1
+  { foto: "", texto: "" },   // ← FOTO 2
+  { foto: "", texto: "" },   // ← FOTO 3
+  { foto: "", texto: "" },   // ← FOTO 4
+  { foto: "", texto: "" },   // ← FOTO 5
+];
+
+/* =====================================================================
+   ★★★ 3) PREGUNTAS Y PUERTAS (10 HABITACIONES) ★★★
+   - "pregunta": lo que aparece arriba.
+   - "opciones": [puerta IZQUIERDA, puerta CENTRO, puerta DERECHA]
+   - "correcta": 0 = IZQUIERDA, 1 = CENTRO, 2 = DERECHA
+   Ya te dejé marcada con ✅ cuál es la correcta de cada habitación.
+   Vos solo escribí la pregunta y las 3 opciones respetando ese orden
+   (la respuesta verdadera tiene que ir en la puerta marcada).
+   ===================================================================== */
+const PREGUNTAS = [
+  { // ===== HABITACIÓN 1 =====
+    pregunta: "Pregunta de la habitación 1",
+    opciones: ["Opción izquierda", "RESPUESTA CORRECTA", "Opción derecha"],
+    correcta: 1   // ✅ CORRECTA: PUERTA DEL CENTRO (la 2ª)
+  },
+  { // ===== HABITACIÓN 2 =====
+    pregunta: "Pregunta de la habitación 2",
+    opciones: ["Opción izquierda", "Opción centro", "RESPUESTA CORRECTA"],
+    correcta: 2   // ✅ CORRECTA: PUERTA DE LA DERECHA (la 3ª)
+  },
+  { // ===== HABITACIÓN 3 =====
+    pregunta: "Pregunta de la habitación 3",
+    opciones: ["RESPUESTA CORRECTA", "Opción centro", "Opción derecha"],
+    correcta: 0   // ✅ CORRECTA: PUERTA DE LA IZQUIERDA (la 1ª)
+  },
+  { // ===== HABITACIÓN 4 =====
+    pregunta: "Pregunta de la habitación 4",
+    opciones: ["Opción izquierda", "RESPUESTA CORRECTA", "Opción derecha"],
+    correcta: 1   // ✅ CORRECTA: PUERTA DEL CENTRO (la 2ª)
+  },
+  { // ===== HABITACIÓN 5 =====
+    pregunta: "Pregunta de la habitación 5",
+    opciones: ["RESPUESTA CORRECTA", "Opción centro", "Opción derecha"],
+    correcta: 0   // ✅ CORRECTA: PUERTA DE LA IZQUIERDA (la 1ª)
+  },
+  { // ===== HABITACIÓN 6 =====
+    pregunta: "Pregunta de la habitación 6",
+    opciones: ["Opción izquierda", "Opción centro", "RESPUESTA CORRECTA"],
+    correcta: 2   // ✅ CORRECTA: PUERTA DE LA DERECHA (la 3ª)
+  },
+  { // ===== HABITACIÓN 7 =====
+    pregunta: "Pregunta de la habitación 7",
+    opciones: ["Opción izquierda", "RESPUESTA CORRECTA", "Opción derecha"],
+    correcta: 1   // ✅ CORRECTA: PUERTA DEL CENTRO (la 2ª)
+  },
+  { // ===== HABITACIÓN 8 =====
+    pregunta: "Pregunta de la habitación 8",
+    opciones: ["RESPUESTA CORRECTA", "Opción centro", "Opción derecha"],
+    correcta: 0   // ✅ CORRECTA: PUERTA DE LA IZQUIERDA (la 1ª)
+  },
+  { // ===== HABITACIÓN 9 =====
+    pregunta: "Pregunta de la habitación 9",
+    opciones: ["Opción izquierda", "Opción centro", "RESPUESTA CORRECTA"],
+    correcta: 2   // ✅ CORRECTA: PUERTA DE LA DERECHA (la 3ª)
+  },
+  { // ===== HABITACIÓN 10 =====
+    pregunta: "Pregunta de la habitación 10",
+    opciones: ["Opción izquierda", "RESPUESTA CORRECTA", "Opción derecha"],
+    correcta: 1   // ✅ CORRECTA: PUERTA DEL CENTRO (la 2ª)
+  },
+];
+
+/* =====================================================================
+   MISIONES (minijuegos) — dificultad "d" va subiendo de 1 a 10
+   ===================================================================== */
+const MISIONES = [
+  { tipo:'tap',      d:1,  titulo:'Atrapá los granitos',  desc:'Tocá los granitos de maíz antes de que desaparezcan. ¡Ojo: si se te escapan 3, perdés!' },
+  { tipo:'odd',      d:2,  titulo:'El intruso',           desc:'Tocá el dibujo que es distinto a los demás.' },
+  { tipo:'seq',      d:3,  titulo:'Simón pochoclo',       desc:'Mirá la secuencia de colores y repetila en el mismo orden.' },
+  { tipo:'timing',   d:4,  titulo:'Punto justo',          desc:'Frená la barra justo en la zona verde.' },
+  { tipo:'atrapar',  d:5,  titulo:'Lluvia de maíz',       desc:'Arrastrá el balde y atrapá los pochoclos. ¡Esquivá las bombas! 💣' },
+  { tipo:'mash',     d:6,  titulo:'Maíz a reventar',      desc:'Tocá el botón lo más rápido que puedas para calentar el maíz antes de que se enfríe.' },
+  { tipo:'tap',      d:7,  titulo:'Granitos veloces',     desc:'Ahora los granitos desaparecen más rápido. ¡Reflejos!' },
+  { tipo:'seq',      d:8,  titulo:'Simón avanzado',       desc:'Una secuencia más larga y más rápida. Concentrate.' },
+  { tipo:'timing',   d:9,  titulo:'Pulso de acero',       desc:'La zona verde es diminuta y la barra vuela. Frená con precisión.' },
+  { tipo:'atrapar',  d:10, titulo:'Tormenta final',       desc:'La última lluvia de maíz. Muchas bombas, mucha velocidad. ¡Vos podés!' },
+];
+
+const PISTAS = [
+  "Encontraste huellitas de patitas naranjas 🐾",
+  "Hay un granito de maíz todavía tibio… Popi estuvo acá.",
+  "Se escuchan unos pasitos esponjosos en la próxima habitación.",
+  "Una notita: «Voy por buen camino, ¡seguime!»",
+  "Un envoltorio a rayas rojas y blancas tirado en el piso 🍿",
+  "Hay olor a manteca en el aire… ¡estás cerca!",
+  "Se escucha un «pop, pop» a lo lejos.",
+  "Una pantufla naranja quedó olvidada en el piso.",
+  "Ves una sombra esponjosa asomándose por una esquina.",
+  "¡Hay algo amarillo y esponjoso detrás de las puertas!",
+];
+
+/* =====================================================================
+   ===== A PARTIR DE ACÁ ES EL MOTOR DEL JUEGO (no hace falta tocar) =====
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const TOTAL = PREGUNTAS.length;
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const lerp = (a,b,t) => a + (b-a)*t;
+const rnd = n => Math.floor(Math.random()*n);
+const ease = k => k<.5 ? 2*k*k : 1-Math.pow(-2*k+2,2)/2;
+
+/* ---------- audio ---------- */
+let AC;
+function beep(f=440,d=.1,type='sine',v=.06){
+  try{
+    AC = AC || new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(), g=AC.createGain();
+    o.type=type; o.frequency.value=f; g.gain.value=v;
+    o.connect(g); g.connect(AC.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime+d);
+    o.stop(AC.currentTime+d);
+  }catch(e){}
+}
+
+/* ---------- Popi (peluche pochoclo) en SVG ---------- */
+let _pid = 0;
+function popSVG(px){
+  const id = 'pc'+(_pid++);
+  let stripes = '';
+  for(let i=0;i<10;i++) stripes += `<rect x="${30+i*14.5}" y="88" width="14.5" height="104" fill="${i%2?'#fff':'#d8322c'}"/>`;
+  const puffs = [[46,74,27],[76,54,30],[112,50,31],[148,68,28],[100,76,29],[60,94,23],[140,94,23],[100,98,20]]
+    .map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#f7e486" stroke="#e6cb5c" stroke-width="2"/>`).join('');
+  const fluff = [[70,48,9],[110,42,10],[146,60,8],[52,70,8],[98,70,9]]
+    .map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="#fff5b0" opacity=".7"/>`).join('');
+  return `<svg viewBox="0 0 200 200" width="${px}" height="${px}" xmlns="http://www.w3.org/2000/svg">
+  <defs><clipPath id="${id}"><path d="M34 98 Q28 140 48 170 Q100 184 152 170 Q172 140 166 98 Z"/></clipPath></defs>
+  <ellipse cx="100" cy="190" rx="64" ry="7" fill="#0004"/>
+  <ellipse cx="66" cy="178" rx="22" ry="10" fill="#e8823a"/><ellipse cx="138" cy="178" rx="22" ry="10" fill="#e8823a"/>
+  <path d="M54 178 v5 M66 178 v6 M78 178 v5 M126 178 v5 M138 178 v6 M150 178 v5" stroke="#c8631f" stroke-width="2.5" stroke-linecap="round"/>
+  <g clip-path="url(#${id})">${stripes}</g>
+  <path d="M34 98 Q28 140 48 170 Q100 184 152 170 Q172 140 166 98 Z" fill="none" stroke="#b8231f" stroke-width="2.5"/>
+  ${puffs}${fluff}
+  <circle cx="88" cy="128" r="16" fill="#fff" stroke="#ddd" stroke-width="2"/><circle cx="114" cy="126" r="16" fill="#fff" stroke="#ddd" stroke-width="2"/>
+  <circle cx="90" cy="131" r="6.5" fill="#3a1d12"/><circle cx="112" cy="129" r="6.5" fill="#3a1d12"/>
+  <circle cx="92" cy="129" r="2" fill="#fff"/><circle cx="114" cy="127" r="2" fill="#fff"/>
+  <circle cx="62" cy="143" r="9" fill="#f3a3b8" opacity=".95"/><circle cx="141" cy="141" r="9" fill="#f3a3b8" opacity=".95"/>
+  <path d="M94 146 Q101 141 108 146 Q108 157 101 159 Q94 157 94 146Z" fill="#f08a3c"/>
+  <path d="M97 150 Q101 152 105 150" stroke="#b8571b" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+  </svg>`;
+}
+
+/* ---------- pantallas ---------- */
+const screens = ['title','story','game','over','win'];
+let loopRunning = false;
+function show(id){
+  screens.forEach(s => $('#'+s).classList.toggle('active', s===id));
+  if(id==='game'){ if(!loopRunning){ loopRunning=true; requestAnimationFrame(loop); } }
+  else loopRunning=false;
+}
+
+/* ---------- título ---------- */
+$('#gameTitle').textContent = TITULO;
+document.title = TITULO;
+$('#titlePop').innerHTML = popSVG(210);
+$('#btnPlay').onclick = () => { beep(520,.12); beep(780,.15); if(HISTORIA.length) startStory(); else startGame(0); };
+
+/* ---------- historia ---------- */
+let sIdx = 0;
+function startStory(){ sIdx=0; show('story'); renderStory(); }
+function placeholder(box,i){
+  box.innerHTML = `<div class="ph"><div>FOTO ${i+1}</div><small>Acá va tu foto (editá el array HISTORIA en el código)</small></div>`;
+}
+function renderStory(){
+  const it = HISTORIA[sIdx], box = $('#sImg');
+  box.innerHTML = '';
+  if(it.foto){
+    const im = new Image();
+    im.onerror = () => placeholder(box,sIdx);
+    im.src = it.foto; box.appendChild(im);
+  } else placeholder(box,sIdx);
+  const t = $('#sTxt'); t.textContent = it.texto || ''; t.style.display = it.texto ? 'block' : 'none';
+  $('#sDots').innerHTML = HISTORIA.map((_,i)=>`<i class="${i===sIdx?'on':''}"></i>`).join('');
+  box.classList.remove('kb'); box.style.animation='none'; void box.offsetWidth; box.style.animation=''; box.classList.add('kb');
+  $('#sNext').textContent = sIdx===HISTORIA.length-1 ? '¡Empezar! ▶' : 'Siguiente ▶';
+}
+function nextStory(){
+  beep(440,.06);
+  if(sIdx>=HISTORIA.length-1) startGame(0); else { sIdx++; renderStory(); }
+}
+$('#sNext').onclick = e => { e.stopPropagation(); nextStory(); };
+$('#sSkip').onclick = e => { e.stopPropagation(); startGame(0); };
+$('#story').onclick = e => { if(e.target.closest('button')) return; nextStory(); };
+
+/* ---------- estado del juego ---------- */
+let room = 0, phase = 'idle', gameToken = 0, timerId = 0, timeLeft = 0, mgStop = () => {};
+const cam = { zoom:1, lookX:0, lookY:0, chosen:-1, openT:0, result:'', fade:0, fadeColor:'#fff6c8' };
+let doorRects = [];
+
+function tween(ms, fn, done){
+  const tk = gameToken, t0 = performance.now();
+  (function f(n){
+    if(tk!==gameToken) return;
+    const k = Math.min(1,(n-t0)/ms); fn(k);
+    if(k<1) requestAnimationFrame(f); else done && done();
+  })(t0);
+}
+function later(ms, fn){ const tk=gameToken; setTimeout(()=>{ if(tk===gameToken) fn(); }, ms); }
+
+function startGame(from){
+  gameToken++;
+  mgStop(); mgStop = () => {};
+  clearInterval(timerId);
+  room = from;
+  $('#mission').classList.remove('on');
+  show('game'); fit();
+  enterRoom();
+}
+
+function buildProg(){
+  $('#hudProg').innerHTML = Array.from({length:TOTAL},(_,i)=>`<i class="${i<room?'d':i===room?'c':''}"></i>`).join('');
+}
+
+function enterRoom(){
+  phase='intro';
+  cam.chosen=-1; cam.openT=0; cam.result=''; cam.zoom=1.3; cam.fade=1; cam.fadeColor='#fff6c8'; cam.lookX=0; cam.lookY=0;
+  $('#qBox').style.display='none'; $('#hint').style.display='none'; $('#hudTime').textContent='';
+  $('#hudRoom').textContent = `Habitación ${room+1}/${TOTAL}`;
+  buildProg();
+  tween(900, k => { const e=ease(k); cam.zoom=1.3-0.3*e; cam.fade=1-e; }, () => {
+    banner(`Habitación ${room+1}`, 1100, startMission);
+  });
+}
+
+function banner(txt, ms, cb){
+  const b = $('#banner'); b.textContent = txt; b.classList.add('on');
+  later(ms, () => { b.classList.remove('on'); if(cb) later(350, cb); });
+}
+
+/* ---------- misiones ---------- */
+function setBtn(txt, fn){ const b=$('#mBtn'); b.style.display='block'; b.textContent=txt; b.onclick=()=>{ beep(500,.08); fn(); }; }
+
+function startMission(){
+  phase='mission';
+  const m = MISIONES[room % MISIONES.length];
+  $('#mission').classList.add('on');
+  $('#mTitle').textContent = `Misión ${room+1}: ${m.titulo}`;
+  $('#mDesc').textContent = m.desc;
+  const body = $('#mgBody'); body.innerHTML = `<div class="popBig bounce">${popSVG(150)}</div>`;
+  setBtn('¡Empezar misión!', playMission);
+}
+
+function playMission(){
+  const m = MISIONES[room % MISIONES.length];
+  $('#mBtn').style.display = 'none';
+  $('#mDesc').textContent = m.desc;
+  const body = $('#mgBody');
+  let ended = false;
+  const tk = gameToken;
+  const end = ok => {
+    if(ended || tk!==gameToken) return; ended = true;
+    mgStop(); mgStop = () => {};
+    if(ok){
+      beep(660,.12); setTimeout(()=>beep(880,.2),120);
+      $('#mDesc').textContent = '¡Misión cumplida!';
+      body.innerHTML = `<div class="popBig"><div class="bounce">${popSVG(110)}</div><div class="clue">${PISTAS[room % PISTAS.length]}</div></div>`;
+      setBtn('Ir a las puertas ▶', openDoors);
+    } else {
+      beep(200,.3,'sawtooth');
+      $('#mDesc').textContent = '¡Ups! No lo lograste. ¡Probá de nuevo!';
+      body.innerHTML = `<div class="popBig"><div class="sad">${popSVG(110)}</div></div>`;
+      setBtn('Reintentar', playMission);
+    }
+  };
+  mgStop = MG[m.tipo](body, m.d, end) || (() => {});
+}
+
+/* ---------- puertas ---------- */
+function openDoors(){
+  $('#mission').classList.remove('on');
+  phase='doors';
+  const q = PREGUNTAS[room];
+  $('#qText').textContent = q.pregunta;
+  $('#qBox').style.display='block';
+  $('#hint').style.display='block';
+  if(TEMPORIZADOR){
+    timeLeft = TIEMPOS[room % TIEMPOS.length] || 30;
+    updTime();
+    clearInterval(timerId);
+    const tk = gameToken;
+    timerId = setInterval(() => {
+      if(tk!==gameToken || phase!=='doors'){ clearInterval(timerId); return; }
+      timeLeft--; updTime();
+      if(timeLeft<=0){ clearInterval(timerId); gameOver('time'); }
+    }, 1000);
+  }
+}
+function updTime(){
+  const t = $('#hudTime'); t.textContent = '⏱ '+Math.max(0,timeLeft);
+  t.classList.toggle('low', timeLeft<=8);
+}
+
+function chooseDoor(j){
+  if(phase!=='doors') return;
+  phase='walk'; clearInterval(timerId);
+  $('#hint').style.display='none';
+  const ok = (j === PREGUNTAS[room].correcta);
+  cam.chosen=j; cam.result = ok ? 'ok' : 'bad';
+  for(let i=0;i<6;i++) setTimeout(()=>beep(120+(i%2)*20,.08,'triangle',.08), i*220);
+  tween(1500, k => {
+    cam.zoom = 1 + ease(k)*6.5;
+    cam.openT = clamp((k-0.12)/0.5,0,1);
+    cam.lookX *= .9; cam.lookY *= .9;
+    if(k>.72){ cam.fade=(k-.72)/.28; cam.fadeColor = ok ? '#fff6c8' : '#000'; }
+  }, () => {
+    if(ok){
+      beep(784,.15); setTimeout(()=>beep(988,.25),150);
+      if(room>=TOTAL-1) winGame(); else { room++; enterRoom(); }
+    } else gameOver('door');
+  });
+}
+
+function gameOver(reason){
+  phase='end'; clearInterval(timerId); mgStop();
+  beep(180,.4,'sawtooth'); setTimeout(()=>beep(120,.5,'sawtooth'),250);
+  $('#overPop').innerHTML = popSVG(170);
+  $('#overTitle').textContent = '¡Perdiste!';
+  $('#overMsg').textContent = reason==='time'
+    ? 'Se acabó el tiempo… Popi sigue perdido.'
+    : 'Esa no era la puerta correcta… Popi sigue perdido.';
+  $('#btnRetry').textContent = REINICIAR_DESDE_EL_PRINCIPIO ? 'Empezar de nuevo' : 'Reintentar habitación';
+  gameToken++;
+  show('over');
+}
+$('#btnRetry').onclick = () => startGame(REINICIAR_DESDE_EL_PRINCIPIO ? 0 : room);
+
+function winGame(){
+  phase='end'; gameToken++;
+  $('#winPop').innerHTML = popSVG(230);
+  $('#winMsg').textContent = TEXTO_FINAL;
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,.25),i*160));
+  show('win');
+}
+$('#btnAgain').onclick = () => { gameToken++; show('title'); };
+
+/* =====================================================================
+   MINIJUEGOS
+   ===================================================================== */
+const hearts = n => '❤️'.repeat(Math.max(0,n)) + '🖤'.repeat(Math.max(0,3-n));
+function mkLayout(body){
+  body.innerHTML='';
+  const info = document.createElement('div'); info.className='mgInfo';
+  const area = document.createElement('div'); area.className='mgArea';
+  body.append(info, area);
+  return { info, area };
+}
+const MG = {};
+
+/* --- 1) Tocar granitos --- */
+MG.tap = (body, d, end) => {
+  const { info, area } = mkLayout(body);
+  const need = 5 + Math.floor(d*0.9);
+  const life = Math.max(600, 1800 - d*110);
+  const size = Math.max(46, 70 - d*3);
+  const every = Math.max(350, 900 - d*45);
+  let hit=0, miss=0, alive=true; const tms=[];
+  const upd = () => info.textContent = `🌽 ${hit}/${need}    ${hearts(3-miss)}`;
+  function spawn(){
+    if(!alive) return;
+    const k = document.createElement('div'); k.className='kernel';
+    k.style.width = k.style.height = size+'px';
+    k.style.left = Math.random()*(area.clientWidth-size)+'px';
+    k.style.top = Math.random()*(area.clientHeight-size)+'px';
+    let gone=false; const kill=()=>{ gone=true; k.remove(); };
+    k.onpointerdown = e => {
+      e.preventDefault(); if(gone||!alive) return;
+      kill(); hit++; beep(600+hit*35,.07); upd();
+      if(hit>=need){ alive=false; end(true); }
+    };
+    area.appendChild(k);
+    tms.push(setTimeout(()=>{
+      if(gone||!alive) return; kill(); miss++; beep(180,.12,'sawtooth'); upd();
+      if(miss>=3){ alive=false; end(false); }
+    }, life));
+    tms.push(setTimeout(spawn, every));
+  }
+  upd(); spawn();
+  return () => { alive=false; tms.forEach(clearTimeout); };
+};
+
+/* --- 2) El intruso --- */
+MG.odd = (body, d, end) => {
+  const { info, area } = mkLayout(body);
+  const PAIRS = [['🍅','🍎'],['🐔','🐓'],['😀','😃'],['🕐','🕑'],['🍩','🥯'],['🔵','🟦'],['🌕','🟡'],['🧀','🟨']];
+  const n = d<=3 ? 3 : d<=6 ? 4 : 5;
+  const rounds = 3, perRound = Math.max(4000, 10000 - d*600);
+  let round=0, lives=3, tm=0, alive=true;
+  const upd = () => info.textContent = `🔎 ${round}/${rounds}    ${hearts(lives)}`;
+  const grid = document.createElement('div'); grid.className='oddGrid'; area.appendChild(grid);
+  const side = Math.min(area.clientWidth-16, area.clientHeight-16);
+  grid.style.width = grid.style.height = side+'px';
+  grid.style.gridTemplateColumns = `repeat(${n},1fr)`;
+  grid.style.gridTemplateRows = `repeat(${n},1fr)`;
+  function next(){
+    if(!alive) return;
+    clearTimeout(tm); grid.innerHTML='';
+    const [a,b] = PAIRS[rnd(PAIRS.length)], odd = rnd(n*n);
+    for(let i=0;i<n*n;i++){
+      const c = document.createElement('div'); c.className='cell';
+      c.style.fontSize = Math.floor(side/n*0.6)+'px';
+      c.textContent = i===odd ? b : a;
+      c.onpointerdown = e => {
+        e.preventDefault(); if(!alive) return;
+        if(i===odd){
+          round++; beep(700,.1); upd();
+          if(round>=rounds){ alive=false; end(true); } else next();
+        } else {
+          lives--; beep(170,.15,'sawtooth'); upd();
+          if(lives<=0){ alive=false; end(false); }
+        }
+      };
+      grid.appendChild(c);
+    }
+    tm = setTimeout(()=>{
+      if(!alive) return; lives--; beep(170,.15,'sawtooth'); upd();
+      if(lives<=0){ alive=false; end(false); } else next();
+    }, perRound);
+  }
+  upd(); next();
+  return () => { alive=false; clearTimeout(tm); };
+};
+
+/* --- 3) Simón --- */
+MG.seq = (body, d, end) => {
+  const { info, area } = mkLayout(body);
+  const len = 2 + Math.ceil(d/2), gap = Math.max(280, 720 - d*45);
+  const cols = ['#e53935','#fdd835','#1e88e5','#43a047'];
+  area.innerHTML = '<div class="pads"></div>';
+  const wrap = area.firstChild;
+  const pads = cols.map((c,i)=>{ const p=document.createElement('div'); p.className='pad'; p.style.background=c; wrap.appendChild(p); return p; });
+  const seq = Array.from({length:len},()=>rnd(4));
+  let pos=0, input=false, alive=true; const tms=[];
+  const T = (fn,ms)=>tms.push(setTimeout(fn,ms));
+  const flash = (i,ms)=>{ pads[i].classList.add('on'); beep(300+i*130,ms/1000); T(()=>pads[i].classList.remove('on'),ms); };
+  function play(){
+    input=false; info.textContent='👀 Mirá bien…';
+    seq.forEach((s,k)=>T(()=>flash(s,gap*0.7), 700+k*gap));
+    T(()=>{ input=true; pos=0; info.textContent='👆 ¡Tu turno!'; }, 700+len*gap);
+  }
+  pads.forEach((p,i)=>{
+    p.onpointerdown = e => {
+      e.preventDefault(); if(!input||!alive) return;
+      flash(i,180);
+      if(i===seq[pos]){
+        pos++; info.textContent = `👆 ${pos}/${len}`;
+        if(pos>=len){ input=false; T(()=>{ alive=false; end(true); },450); }
+      } else { input=false; T(()=>{ alive=false; end(false); },450); }
+    };
+  });
+  play();
+  return () => { alive=false; tms.forEach(clearTimeout); };
+};
+
+/* --- 4) Punto justo --- */
+MG.timing = (body, d, end) => {
+  const { info, area } = mkLayout(body);
+  area.innerHTML = '<div class="bar"><div class="zone"></div><div class="mark"></div></div><button class="btn big">¡PARAR!</button>';
+  const zone = area.querySelector('.zone'), mark = area.querySelector('.mark'), btn = area.querySelector('button');
+  const need = d>=8 ? 4 : 3, zw = Math.max(0.11, 0.34 - d*0.026), speed = 0.7 + d*0.14;
+  let hits=0, lives=3, pos=0, dir=1, z=0, raf=0, last=performance.now(), alive=true;
+  const upd = () => info.textContent = `🎯 ${hits}/${need}    ${hearts(lives)}`;
+  const setZone = () => { z = 0.04 + Math.random()*(0.92-zw); zone.style.left = z*100+'%'; zone.style.width = zw*100+'%'; };
+  function frame(now){
+    if(!alive) return;
+    const dt = Math.min(.05,(now-last)/1000); last = now;
+    pos += dir*speed*dt;
+    if(pos>1){ pos=1; dir=-1; } if(pos<0){ pos=0; dir=1; }
+    mark.style.left = pos*100+'%';
+    raf = requestAnimationFrame(frame);
+  }
+  const stop = e => {
+    if(e) e.preventDefault(); if(!alive) return;
+    if(pos>=z && pos<=z+zw){
+      hits++; beep(700+hits*80,.12); upd();
+      if(hits>=need){ alive=false; end(true); return; }
+      setZone();
+    } else {
+      lives--; beep(170,.15,'sawtooth'); upd();
+      if(lives<=0){ alive=false; end(false); }
+    }
+  };
+  btn.onpointerdown = stop;
+  area.querySelector('.bar').onpointerdown = stop;
+  setZone(); upd(); raf = requestAnimationFrame(frame);
+  return () => { alive=false; cancelAnimationFrame(raf); };
+};
+
+/* --- 5) Lluvia de maíz --- */
+MG.atrapar = (body, d, end) => {
+  const { info, area } = mkLayout(body);
+  const need = 5 + Math.floor(d/2), fall = 140 + d*24;
+  const every = Math.max(0.42, 1.0 - d*0.055), badP = 0.12 + d*0.03;
+  let lives=3, got=0, alive=true, raf=0, last=performance.now(), acc=0.5; const items=[];
+  const c = document.createElement('canvas'); area.appendChild(c);
+  const dp = Math.min(2, window.devicePixelRatio||1);
+  const W = area.clientWidth, H = area.clientHeight;
+  c.width = W*dp; c.height = H*dp; c.style.width = W+'px'; c.style.height = H+'px';
+  const x = c.getContext('2d'); x.setTransform(dp,0,0,dp,0,0);
+  const bwid = 78; let bx = W/2;
+  const mv = e => { const r = c.getBoundingClientRect(); bx = clamp(e.clientX - r.left, bwid/2, W-bwid/2); };
+  c.addEventListener('pointerdown', mv); c.addEventListener('pointermove', mv);
+  const upd = () => info.textContent = `🍿 ${got}/${need}    ${hearts(lives)}`;
+  function frame(now){
+    if(!alive) return;
+    const dt = Math.min(.05,(now-last)/1000); last = now; acc += dt;
+    if(acc>=every){ acc=0; items.push({ x:22+Math.random()*(W-44), y:-20, bad:Math.random()<badP }); }
+    x.clearRect(0,0,W,H);
+    x.font='30px serif'; x.textAlign='center'; x.textBaseline='middle';
+    for(let i=items.length-1;i>=0;i--){
+      const it = items[i]; it.y += fall*dt;
+      if(it.y>H-48 && it.y<H-14 && Math.abs(it.x-bx)<bwid/2+6){
+        items.splice(i,1);
+        if(it.bad){ lives--; beep(150,.2,'sawtooth'); } else { got++; beep(700,.06); }
+        upd();
+        if(got>=need){ alive=false; end(true); return; }
+        if(lives<=0){ alive=false; end(false); return; }
+        continue;
+      }
+      if(it.y>H+30){ items.splice(i,1); continue; }
+      x.fillText(it.bad?'💣':'🍿', it.x, it.y);
+    }
+    // balde
+    const y0 = H-46;
+    x.save(); x.beginPath();
+    x.moveTo(bx-bwid/2,y0); x.lineTo(bx+bwid/2,y0); x.lineTo(bx+bwid/2-9,H-6); x.lineTo(bx-bwid/2+9,H-6); x.closePath();
+    x.fillStyle='#d8322c'; x.fill(); x.clip();
+    x.fillStyle='#fff';
+    for(let k=-2;k<=2;k++) x.fillRect(bx+k*30-7.5, y0, 15, 44);
+    x.restore();
+    x.strokeStyle='#8a1511'; x.lineWidth=2; x.beginPath();
+    x.moveTo(bx-bwid/2,y0); x.lineTo(bx+bwid/2,y0); x.lineTo(bx+bwid/2-9,H-6); x.lineTo(bx-bwid/2+9,H-6); x.closePath(); x.stroke();
+    raf = requestAnimationFrame(frame);
+  }
+  upd(); raf = requestAnimationFrame(frame);
+  return () => { alive=false; cancelAnimationFrame(raf); };
+};
+
+/* --- 6) Maíz a reventar --- */
+MG.mash = (body, d, end) => {
+  const { info, area } = mkLayout(body);
+  area.innerHTML = '<div class="heatBar"><div class="heatFill"></div></div><div class="mashTime"></div><button class="btn big mashBtn">🔥 ¡CALENTAR!</button>';
+  const fill = area.querySelector('.heatFill'), tt = area.querySelector('.mashTime'), btn = area.querySelector('button');
+  const gain = 7, drain = 8 + d*3.5;
+  let val = 20, time = 10, alive = true, raf = 0, last = performance.now();
+  info.textContent = '¡Llená la barra hasta el tope!';
+  function frame(now){
+    if(!alive) return;
+    const dt = Math.min(.05,(now-last)/1000); last = now;
+    val = Math.max(0, val - drain*dt); time -= dt;
+    fill.style.width = clamp(val,0,100)+'%';
+    tt.textContent = '⏱ ' + Math.max(0,time).toFixed(1) + ' s';
+    if(val>=100){ alive=false; end(true); return; }
+    if(time<=0){ alive=false; end(false); return; }
+    raf = requestAnimationFrame(frame);
+  }
+  btn.onpointerdown = e => { e.preventDefault(); if(!alive) return; val += gain; beep(300+val*4,.04,'square',.03); };
+  raf = requestAnimationFrame(frame);
+  return () => { alive=false; cancelAnimationFrame(raf); };
+};
+
+/* =====================================================================
+   RENDER 3D (primera persona) EN CANVAS
+   ===================================================================== */
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let dpr = 1;
+function fit(){
+  dpr = Math.min(2, window.devicePixelRatio||1);
+  cv.width = Math.max(1, cv.clientWidth*dpr);
+  cv.height = Math.max(1, cv.clientHeight*dpr);
+}
+window.addEventListener('resize', fit);
+
+const THEMES = [
+  { wall:'#8a2231', back:'#a02a3b', floor:'#3a0f17', ceil:'#220a10', door:'#d9a441', frame:'#4a2a10', glow:'#ffd27a' },
+  { wall:'#2e7d7a', back:'#3b9692', floor:'#c9c1ac', ceil:'#1f5552', door:'#f3efe3', frame:'#1b4a48', glow:'#fff1b8' },
+  { wall:'#6a4a2e', back:'#7d5a3a', floor:'#2b1c10', ceil:'#1e140b', door:'#a9713c', frame:'#2a1a0c', glow:'#ffcf8a' },
+  { wall:'#3f7d3a', back:'#4f9548', floor:'#2d4a22', ceil:'#1d3a1a', door:'#c9e08a', frame:'#26451f', glow:'#e8ffb0' },
+  { wall:'#4a4f5c', back:'#5b6170', floor:'#262932', ceil:'#1a1c22', door:'#8f98ad', frame:'#2a2d36', glow:'#cfe0ff' },
+  { wall:'#7b2d8e', back:'#9139a6', floor:'#35123f', ceil:'#240c2c', door:'#ff9ecb', frame:'#3d1349', glow:'#ffd0f0' },
+  { wall:'#4f93bd', back:'#67aad2', floor:'#bcd9ea', ceil:'#2f6385', door:'#e8f6ff', frame:'#2a5875', glow:'#ffffff' },
+  { wall:'#c98a3e', back:'#dca052', floor:'#8a5a22', ceil:'#7a4c1a', door:'#7a3b16', frame:'#4a2408', glow:'#fff0b0' },
+  { wall:'#1d2350', back:'#2a3170', floor:'#0d1030', ceil:'#080a20', door:'#6f7bff', frame:'#10143a', glow:'#b8c4ff' },
+  { wall:'#b8332b', back:'#d04037', floor:'#4a1210', ceil:'#2e0a08', door:'#ffd54a', frame:'#5a1a10', glow:'#fff0a0' },
+];
+
+function hex(c){ c=c.replace('#',''); if(c.length===3) c=c.split('').map(x=>x+x).join(''); return [parseInt(c.slice(0,2),16),parseInt(c.slice(2,4),16),parseInt(c.slice(4,6),16)]; }
+function mix(a,b,t){ const A=hex(a),B=hex(b); return `rgb(${A.map((v,i)=>Math.round(v+(B[i]-v)*t)).join(',')})`; }
+function rr(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function poly(p,fill){ ctx.beginPath(); ctx.moveTo(p[0][0],p[0][1]); for(let i=1;i<p.length;i++) ctx.lineTo(p[i][0],p[i][1]); ctx.closePath(); ctx.fillStyle=fill; ctx.fill(); }
+
+const FONT = '"Trebuchet MS",system-ui,sans-serif';
+const fitCache = new Map();
+function wrapText(text,maxW){
+  const words = String(text).split(/\s+/).filter(Boolean), lines = []; let cur='';
+  for(const w of words){
+    let word = w;
+    while(ctx.measureText(word).width>maxW && word.length>1){
+      let k = word.length; while(k>1 && ctx.measureText(word.slice(0,k)).width>maxW) k--;
+      if(cur){ lines.push(cur); cur=''; }
+      lines.push(word.slice(0,k)); word = word.slice(k);
+    }
+    const test = cur ? cur+' '+word : word;
+    if(ctx.measureText(test).width<=maxW) cur=test; else { if(cur) lines.push(cur); cur=word; }
+  }
+  if(cur) lines.push(cur);
+  return lines;
+}
+function fitText(text,maxW,maxH,start,min){
+  const key = text+'|'+Math.round(maxW)+'|'+Math.round(maxH);
+  if(fitCache.has(key)) return fitCache.get(key);
+  let res;
+  for(let fs=start; fs>=min; fs--){
+    ctx.font = `bold ${fs}px ${FONT}`;
+    const lines = wrapText(text,maxW);
+    if(lines.length*fs*1.15<=maxH){ res={fs,lines}; break; }
+  }
+  if(!res){
+    ctx.font = `bold ${min}px ${FONT}`;
+    const lines = wrapText(text,maxW).slice(0,Math.max(1,Math.floor(maxH/(min*1.15))));
+    res = { fs:min, lines };
+  }
+  fitCache.set(key,res); return res;
+}
+
+function drawDoor(d, j, th){
+  const isC = cam.chosen===j, open = isC ? cam.openT : 0;
+  ctx.fillStyle = th.frame; rr(d.x-7,d.y-7,d.w+14,d.h+7,10); ctx.fill();
+  if(open>0){
+    const g = ctx.createLinearGradient(0,d.y,0,d.y+d.h);
+    if(cam.result==='ok'){ g.addColorStop(0,'#fffbe0'); g.addColorStop(1,'#ffe48a'); }
+    else { g.addColorStop(0,'#000'); g.addColorStop(1,'#3a0000'); }
+    ctx.fillStyle = g; ctx.fillRect(d.x,d.y,d.w,d.h);
+  }
+  const pw = d.w*(1-0.86*open);
+  const g = ctx.createLinearGradient(d.x,0,d.x+pw,0);
+  g.addColorStop(0,mix(th.door,'#000000',.28)); g.addColorStop(.5,th.door); g.addColorStop(1,mix(th.door,'#000000',.2));
+  ctx.fillStyle = g; ctx.fillRect(d.x,d.y,pw,d.h);
+  if(open<0.4){
+    ctx.save(); ctx.globalAlpha = 1-open/0.4;
+    ctx.strokeStyle='rgba(0,0,0,.25)'; ctx.lineWidth=2; ctx.strokeRect(d.x+7,d.y+7,pw-14,d.h-14);
+    ctx.fillStyle='rgba(0,0,0,.55)'; ctx.beginPath(); ctx.arc(d.cx,d.y+26,15,0,7); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.font=`bold 17px ${FONT}`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('ABC'[j], d.cx, d.y+27);
+    const lab = PREGUNTAS[room].opciones[j] || '';
+    const px = d.x+7, py = d.y+50, pwid = d.w-14, ph = d.h-62;
+    ctx.fillStyle='rgba(255,255,255,.88)'; rr(px,py,pwid,ph,8); ctx.fill();
+    const f = fitText(lab, pwid-10, ph-10, 17, 9);
+    ctx.font = `bold ${f.fs}px ${FONT}`; ctx.fillStyle='#2a1a10'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    const lh = f.fs*1.15, y0 = py + ph/2 - (f.lines.length-1)*lh/2;
+    f.lines.forEach((ln,i)=>ctx.fillText(ln, d.cx, y0+i*lh));
+    if(MODO_PRUEBA && j===PREGUNTAS[room].correcta){ ctx.font='22px serif'; ctx.fillText('✅', d.cx, d.y+d.h-12); }
+    ctx.restore();
+  }
+  ctx.fillStyle='#f5d77a'; ctx.beginPath(); ctx.arc(d.x+pw-9, d.y+d.h*0.56, 5.5, 0, 7); ctx.fill();
+}
+
+function drawRoom(t){
+  const W = cv.clientWidth, H = cv.clientHeight; if(!W||!H) return;
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  const th = THEMES[room % THEMES.length];
+  if(!drag){ cam.lookX *= .97; cam.lookY *= .95; }
+  const lx = clamp(cam.lookX + Math.sin(t*.7)*.05, -1, 1), ly = cam.lookY + Math.sin(t*1.3)*.02;
+  const bw = W*0.8, bh = H*0.44;
+  const bx = Math.max(1,(W-bw)/2 + lx*W*0.1), by = H*0.29 + ly*H*0.03;
+  const doors = [0,1,2].map(j=>{
+    const cx = bx + bw*(0.17+0.33*j), dw = bw*0.29, dh = bh*0.78;
+    return { x:cx-dw/2, y:by+bh-dh, w:dw, h:dh, cx, cy:by+bh-dh/2 };
+  });
+  doorRects = doors;
+
+  ctx.save();
+  if(cam.zoom!==1){
+    const p = cam.chosen>=0 ? doors[cam.chosen] : { cx:W/2, cy:H/2 };
+    ctx.translate(p.cx,p.cy); ctx.scale(cam.zoom,cam.zoom); ctx.translate(-p.cx,-p.cy);
+  }
+  // techo
+  let g = ctx.createLinearGradient(0,0,0,by); g.addColorStop(0,mix(th.ceil,'#000000',.3)); g.addColorStop(1,th.ceil);
+  poly([[0,0],[W,0],[bx+bw,by],[bx,by]], g);
+  // piso
+  g = ctx.createLinearGradient(0,by+bh,0,H); g.addColorStop(0,mix(th.floor,'#ffffff',.1)); g.addColorStop(1,mix(th.floor,'#000000',.25));
+  poly([[0,H],[W,H],[bx+bw,by+bh],[bx,by+bh]], g);
+  // pared izq
+  g = ctx.createLinearGradient(0,0,bx,0); g.addColorStop(0,mix(th.wall,'#000000',.45)); g.addColorStop(1,th.wall);
+  poly([[0,0],[bx,by],[bx,by+bh],[0,H]], g);
+  // pared der
+  g = ctx.createLinearGradient(bx+bw,0,W,0); g.addColorStop(0,th.wall); g.addColorStop(1,mix(th.wall,'#000000',.45));
+  poly([[W,0],[bx+bw,by],[bx+bw,by+bh],[W,H]], g);
+  // pared del fondo
+  g = ctx.createLinearGradient(0,by,0,by+bh); g.addColorStop(0,th.back); g.addColorStop(1,mix(th.back,'#000000',.25));
+  ctx.fillStyle = g; ctx.fillRect(bx,by,bw,bh);
+
+  // líneas del piso
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(0,H); ctx.lineTo(W,H); ctx.lineTo(bx+bw,by+bh); ctx.lineTo(bx,by+bh); ctx.closePath(); ctx.clip();
+  ctx.strokeStyle='rgba(0,0,0,.28)'; ctx.lineWidth=1.5;
+  for(let i=0;i<=10;i++){
+    const a=i/10, xn=lerp(-W*.6,W*1.6,a), xb=lerp(bx,bx+bw,a);
+    ctx.beginPath(); ctx.moveTo(xn,H); ctx.lineTo(xb,by+bh); ctx.stroke();
+  }
+  for(let i=1;i<=9;i++){
+    const u=1-Math.pow(.72,i), y=lerp(H,by+bh,u);
+    ctx.beginPath(); ctx.moveTo(lerp(0,bx,u),y); ctx.lineTo(lerp(W,bx+bw,u),y); ctx.stroke();
+  }
+  ctx.restore();
+  // líneas del techo
+  ctx.save();
+  ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(W,0); ctx.lineTo(bx+bw,by); ctx.lineTo(bx,by); ctx.closePath(); ctx.clip();
+  ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=1.5;
+  for(let i=1;i<=7;i++){
+    const u=1-Math.pow(.7,i), y=lerp(0,by,u);
+    ctx.beginPath(); ctx.moveTo(lerp(0,bx,u),y); ctx.lineTo(lerp(W,bx+bw,u),y); ctx.stroke();
+  }
+  ctx.restore();
+  // rayas / guardas en paredes
+  ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=2;
+  for(let i=1;i<=9;i++){
+    const u=1-Math.pow(.7,i);
+    let x=lerp(0,bx,u); ctx.beginPath(); ctx.moveTo(x,lerp(0,by,u)); ctx.lineTo(x,lerp(H,by+bh,u)); ctx.stroke();
+    x=lerp(W,bx+bw,u); ctx.beginPath(); ctx.moveTo(x,lerp(0,by,u)); ctx.lineTo(x,lerp(H,by+bh,u)); ctx.stroke();
+  }
+  // zócalo oscuro
+  poly([[0,H*.7],[bx,by+bh*.7],[bx,by+bh],[0,H]], 'rgba(0,0,0,.28)');
+  poly([[W,H*.7],[bx+bw,by+bh*.7],[bx+bw,by+bh],[W,H]], 'rgba(0,0,0,.28)');
+  // zócalo del fondo
+  ctx.fillStyle='rgba(0,0,0,.3)'; ctx.fillRect(bx,by+bh*.94,bw,bh*.06);
+  // luces en las paredes
+  [.5,.8].forEach(u=>{
+    [[0,bx],[W,bx+bw]].forEach(([a,b])=>{
+      const x=lerp(a,b,u), yt=lerp(0,by,u), yb=lerp(H,by+bh,u), y=yt+(yb-yt)*.38, r=lerp(70,28,u);
+      const rg=ctx.createRadialGradient(x,y,1,x,y,r);
+      rg.addColorStop(0,th.glow); rg.addColorStop(.25,'rgba(255,230,160,.35)'); rg.addColorStop(1,'rgba(255,230,160,0)');
+      ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill();
+      ctx.fillStyle=th.glow; ctx.beginPath(); ctx.arc(x,y,lerp(7,3.5,u),0,7); ctx.fill();
+    });
+  });
+  // lámpara del techo
+  { const u=.55, x=lerp(W/2,bx+bw/2,u), y=lerp(0,by,u), r=lerp(90,40,u);
+    const rg=ctx.createRadialGradient(x,y,1,x,y,r);
+    rg.addColorStop(0,th.glow); rg.addColorStop(.3,'rgba(255,240,190,.3)'); rg.addColorStop(1,'rgba(255,240,190,0)');
+    ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill(); }
+  // cartel de habitación
+  ctx.fillStyle='rgba(0,0,0,.4)'; rr(bx+bw/2-46,by+8,92,24,8); ctx.fill();
+  ctx.fillStyle='#ffe9c9'; ctx.font=`bold 13px ${FONT}`; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(`HABITACIÓN ${room+1}`, bx+bw/2, by+20);
+  // puertas
+  doors.forEach((d,j)=>drawDoor(d,j,th));
+  ctx.restore();
+
+  // viñeta
+  const vg = ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.25,W/2,H/2,Math.max(W,H)*.75);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.6)');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+  // fundido
+  if(cam.fade>0){ ctx.globalAlpha=clamp(cam.fade,0,1); ctx.fillStyle=cam.fadeColor; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1; }
+}
+
+function loop(t){
+  if(!loopRunning) return;
+  drawRoom(t/1000);
+  requestAnimationFrame(loop);
+}
+
+/* ---------- controles: arrastrar para mirar / tocar puerta ---------- */
+let drag = null;
+cv.addEventListener('pointerdown', e => {
+  try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+  drag = { x:e.clientX, y:e.clientY, moved:0 };
+});
+cv.addEventListener('pointermove', e => {
+  if(!drag) return;
+  const dx = e.clientX-drag.x, dy = e.clientY-drag.y;
+  drag.moved += Math.abs(dx)+Math.abs(dy); drag.x=e.clientX; drag.y=e.clientY;
+  if(phase==='doors'){
+    cam.lookX = clamp(cam.lookX + dx/cv.clientWidth*2.6, -1, 1);
+    cam.lookY = clamp(cam.lookY + dy/cv.clientHeight*2, -1, 1);
+  }
+});
+cv.addEventListener('pointerup', e => {
+  if(drag && drag.moved<14 && phase==='doors'){
+    const r = cv.getBoundingClientRect(), x = e.clientX-r.left, y = e.clientY-r.top;
+    for(let j=0;j<doorRects.length;j++){
+      const d = doorRects[j];
+      if(x>=d.x-8 && x<=d.x+d.w+8 && y>=d.y-8 && y<=d.y+d.h+8){ chooseDoor(j); break; }
+    }
+  }
+  drag = null;
+});
+cv.addEventListener('pointercancel', () => { drag = null; });
+
+document.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
+document.addEventListener('contextmenu', e => e.preventDefault());
+</script>
+</body>
+</html>
