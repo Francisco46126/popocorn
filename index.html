@@ -177,17 +177,17 @@ const MODO_PRUEBA = false;
 // Mensajes tristes cuando elige la puerta equivocada (se elige uno al azar).
 // No se reinicia el recorrido: vuelve a intentar la misma habitación.
 const MENSAJES_TRISTES = [
-  `Tu ${NOMBRE} está triste… ¿cómo no vas a saber esto? 😢`,
-  `Snif… ${NOMBRE} esperaba más de vos. ¿Cómo no te acordás de esto? 💔`,
-  `${NOMBRE} te odia por no saberlo`,
+  `${NOMBRE} está triste… ¿cómo no vas a saber esto? 😢`,
+  `${NOMBRE} esperaba más de vos. ¿Cómo no te acordás de esto? 💔`,
+  `${NOMBRE} TE ODIA por no saberlo`,
 ];
 
-const TEXTO_FINAL = `¡${NOMBRE} te estaba esperando! Tiene algo para vos…`;
+const TEXTO_FINAL = `¡${NOMBRE} AYUDAAA NO SE DONDE ESTOY ! Amor sos vos?, toca el regalo `;
 
 // ★ LA CARTA que se abre al tocar el regalito ★
 // (Podés escribir varios renglones; los saltos de línea se respetan.)
 const CARTA = {
-  titulo: "AYUDAAA ",
+  titulo: "GRACIAS POR ENCONTRARME ",
   texto: "Acá va tu carta.\n\nEscribí lo que quieras decirle…\n\nPodés usar varios párrafos.",
   firma: "— Fran"
 };
@@ -275,16 +275,16 @@ const PREGUNTAS = [
    MISIONES (minijuegos) — dificultad "d" va subiendo de 1 a 10
    ===================================================================== */
 const MISIONES = [
-  { tipo:'tap',      d:1,  titulo:'Atrapá los granitos',  desc:'Tocá los granitos de maíz antes de que desaparezcan. ¡Ojo: si se te escapan 3, perdés!' },
+  { tipo:'tap',      d:1,  titulo:'Atrapá los granitos',  desc:'Tocá los granitos de choclo antes de que desaparezcan. ¡Ojo: si se te escapan 3, perdés!' },
   { tipo:'odd',      d:2,  titulo:'El intruso',           desc:'Tocá el dibujo que es distinto a los demás.' },
   { tipo:'seq',      d:3,  titulo:'Simón pochoclo',       desc:'Mirá la secuencia de colores y repetila en el mismo orden.' },
   { tipo:'timing',   d:4,  titulo:'Punto justo',          desc:'Frená la barra justo en la zona verde.' },
-  { tipo:'atrapar',  d:5,  titulo:'Lluvia de maíz',       desc:'Arrastrá el balde y atrapá los pochoclos. ¡Esquivá las bombas! 💣' },
-  { tipo:'mash',     d:6,  titulo:'Maíz a reventar',      desc:'Tocá el botón lo más rápido que puedas para calentar el maíz antes de que se enfríe.' },
-  { tipo:'tap',      d:7,  titulo:'Granitos veloces',     desc:'Ahora los granitos desaparecen más rápido. ¡Reflejos!' },
+  { tipo:'atrapar',  d:5,  titulo:'Lluvia de maíz',       desc:'Arrastrá el balde y atrapá los pururu. ¡Esquivá las bombas! 💣' },
+  { tipo:'mash',     d:6,  titulo:'Maíz a reventar',      desc:'Tocá el botón lo más rápido que puedas para calentar el choclo antes de que se enfríe.' },
+  { tipo:'tap',      d:7,  titulo:'Granitos veloces',     desc:'Ahora los granitos desaparecen más rápido. ¡Vos podes!' },
   { tipo:'seq',      d:8,  titulo:'Simón avanzado',       desc:'Una secuencia más larga y más rápida. Concentrate mira que es muy dificil .' },
   { tipo:'timing',   d:9,  titulo:'Pulso de acero',       desc:'La zona verde es diminuta y la barra vuela. Frená con precisión.' },
-  { tipo:'atrapar',  d:10, titulo:'Tormenta final',       desc:'La última lluvia de maíz. Muchas bombas, mucha velocidad. ¡Vos podés!' },
+  { tipo:'atrapar',  d:10, titulo:'Tormenta final',       desc:'La última lluvia de choclo. Muchas bombas, mucha velocidad. ¡Vos podés!' },
 ];
 
 const PISTAS = [
