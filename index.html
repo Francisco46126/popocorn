@@ -148,7 +148,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#120808;color:#fff;fon
     <div class="popWrap bounce"><div id="winPop"></div><button id="giftBtn" aria-label="Abrir regalo"></button></div>
     <h1>¡LO ENCONTRASTE!</h1>
     <p id="winMsg"></p>
-    <p class="giftHint">🎁 ¡TOCA EL RAGLO QUE TIENE EN LAS MANOS ES PARA VOS!</p>
+    <p class="giftHint">🎁 ¡TOCA EL RAGLO QUE TENGO EN LAS MANOS, ES PARA VOS!</p>
     <button class="btn ghost" id="btnAgain">Jugar de nuevo</button>
   </div>
   <div id="letter">
@@ -182,14 +182,14 @@ const MENSAJES_TRISTES = [
   `${NOMBRE} TE ODIA por no saberlo`,
 ];
 
-const TEXTO_FINAL = ` AMOR GRACIAS POR BUSCARME TE EXTRAÑE, ME PERDI VOLVIENDO A CASA `;
+const TEXTO_FINAL = ` AMOR GRACIAS POR BUSCARME, TE EXTRAÑE `;
 
 // ★ LA CARTA que se abre al tocar el regalito ★
 // (Podés escribir varios renglones; los saltos de línea se respetan.)
 const CARTA = {
   titulo: "GRACIAS POR ENCONTRARME ",
-  texto: "Acá va tu carta.\n\nEscribí lo que quieras decirle…\n\nPodés usar varios párrafos.",
-  firma: "— Fran"
+  texto: "Si estás leyendo esto es porque lograste encontrar a Fran Popocorns, y la verdad no me sorprende, siempre me demostrás que podés con todo lo que te propongas.\n\nGracias por estar, por bancarme en aunque te haga enojar, por reírte de mis chistes malos y por hacer que hasta lo más tonto se sienta especial. Con vos hasta un día cualquiera termina siendo un buen día.\n\nDesde que somos novios, mi vida es más linda, más tranquila y mucho más divertida. Me hacés querer ser mejor, porque te lo mereces, No sé qué voy a hacer con todo lo que siento por vos, pero sí sé que quiero seguir sintiéndolo todos los días.",
+  firma: "Tuyo siempre,Fran 💕"
 };
 
 /* =====================================================================
@@ -220,53 +220,53 @@ const HISTORIA = [
    ===================================================================== */
 const PREGUNTAS = [
   { // ===== HABITACIÓN 1 =====
-    pregunta: "Pregunta de la habitación 1",
-    opciones: ["Opción izquierda", "RESPUESTA CORRECTA", "Opción derecha"],
+    pregunta: "Cuantos años tengo",
+    opciones: ["20", "21", "22"],
     correcta: 1   // ✅ CORRECTA: PUERTA DEL CENTRO (la 2ª)
   },
   { // ===== HABITACIÓN 2 =====
-    pregunta: "Pregunta de la habitación 2",
-    opciones: ["Opción izquierda", "Opción centro", "RESPUESTA CORRECTA"],
+    pregunta: "Que prefiero",
+    opciones: ["Ver reels", "Ver tiktok", "Ver alguna serie"],
     correcta: 2   // ✅ CORRECTA: PUERTA DE LA DERECHA (la 3ª)
   },
   { // ===== HABITACIÓN 3 =====
-    pregunta: "Pregunta de la habitación 3",
-    opciones: ["RESPUESTA CORRECTA", "Opción centro", "Opción derecha"],
+    pregunta: "Cual es mi dni",
+    opciones: ["46.126.779", "46.127.895", "46.125.997"],
     correcta: 0   // ✅ CORRECTA: PUERTA DE LA IZQUIERDA (la 1ª)
   },
   { // ===== HABITACIÓN 4 =====
-    pregunta: "Pregunta de la habitación 4",
-    opciones: ["Opción izquierda", "RESPUESTA CORRECTA", "Opción derecha"],
+    pregunta: "QUe prefiero",
+    opciones: ["Roblox", "fortnite", "juego de 2"],
     correcta: 1   // ✅ CORRECTA: PUERTA DEL CENTRO (la 2ª)
   },
   { // ===== HABITACIÓN 5 =====
-    pregunta: "Pregunta de la habitación 5",
-    opciones: ["RESPUESTA CORRECTA", "Opción centro", "Opción derecha"],
+    pregunta: "De que lado tengo el tatuaje",
+    opciones: ["Derecho", "Izquierdo", "No tengo tatuaje"],
     correcta: 0   // ✅ CORRECTA: PUERTA DE LA IZQUIERDA (la 1ª)
   },
   { // ===== HABITACIÓN 6 =====
-    pregunta: "Pregunta de la habitación 6",
-    opciones: ["Opción izquierda", "Opción centro", "RESPUESTA CORRECTA"],
+    pregunta: "¿Cuándo me di cuenta de que me gustabas?",
+    opciones: ["En la marvic", "En instagram", "En el recreo"],
     correcta: 2   // ✅ CORRECTA: PUERTA DE LA DERECHA (la 3ª)
   },
   { // ===== HABITACIÓN 7 =====
-    pregunta: "Pregunta de la habitación 7",
-    opciones: ["Opción izquierda", "RESPUESTA CORRECTA", "Opción derecha"],
+    pregunta: "En donde tengo el lunar en el brazo",
+    opciones: ["brazo izquierdo", "brazo derecho", "no tengo lunar"],
     correcta: 1   // ✅ CORRECTA: PUERTA DEL CENTRO (la 2ª)
   },
   { // ===== HABITACIÓN 8 =====
-    pregunta: "Pregunta de la habitación 8",
-    opciones: ["RESPUESTA CORRECTA", "Opción centro", "Opción derecha"],
+    pregunta: "Cuál fue el primer regalo que te hice",
+    opciones: ["Gomitas", "Carta", "Pulsera"],
     correcta: 0   // ✅ CORRECTA: PUERTA DE LA IZQUIERDA (la 1ª)
   },
   { // ===== HABITACIÓN 9 =====
-    pregunta: "Pregunta de la habitación 9",
-    opciones: ["Opción izquierda", "Opción centro", "RESPUESTA CORRECTA"],
+    pregunta: "De que color era la toalla cuando nos bañamos",
+    opciones: ["Naranja", "Celeste", "Rosa"],
     correcta: 2   // ✅ CORRECTA: PUERTA DE LA DERECHA (la 3ª)
   },
   { // ===== HABITACIÓN 10 =====
-    pregunta: "Pregunta de la habitación 10",
-    opciones: ["Opción izquierda", "RESPUESTA CORRECTA", "Opción derecha"],
+    pregunta: "Como se llamo mi primer perro",
+    opciones: ["benito", "tom", "tobi"],
     correcta: 1   // ✅ CORRECTA: PUERTA DEL CENTRO (la 2ª)
   },
 ];
@@ -282,8 +282,8 @@ const MISIONES = [
   { tipo:'atrapar',  d:5,  titulo:'Lluvia de maíz',       desc:'Arrastrá el balde y atrapá los pururu. ¡Esquivá las bombas! 💣' },
   { tipo:'mash',     d:6,  titulo:'Maíz a reventar',      desc:'Tocá el botón lo más rápido que puedas para calentar el choclo antes de que se enfríe.' },
   { tipo:'tap',      d:7,  titulo:'Granitos veloces',     desc:'Ahora los granitos desaparecen más rápido. ¡Vos podes!' },
-  { tipo:'odd',      d:8,  titulo:'El intruso',           desc:'Una secuencia más larga y más rápida. Concentrate mira que es muy dificil .' },
-  { tipo:'timing',   d:9,  titulo:'Pulso de acero',       desc:'La zona verde es diminuta y la barra vuela. Frená con precisión.' },
+  { tipo:'odd',      d:9,  titulo:'El intruso',           desc:'Tocá el dibujo que es distinto a los demás.' },
+  { tipo:'timing',   d:7,  titulo:'Pulso de acero',       desc:'La zona verde es diminuta y la barra vuela. Frená con precisión.' },
   { tipo:'atrapar',  d:10, titulo:'Tormenta final',       desc:'La última lluvia de choclo. Muchas bombas, mucha velocidad. ¡Vos podés!' },
 ];
 
@@ -291,7 +291,7 @@ const PISTAS = [
   "Encontraste huellitas seran de  popocorn?",
   "Hay un granito de pochoclo tibio… Fran Popcorns estuvo acá.",
   "Se escuchan unos pasitos en la otra habitación, sera el??.",
-  "Una notita: «AYUDAA»",
+  "Una notita: «AYUDAA NOSE DONDE ESTOY»",
   "Hay una ropa de rayas rojas y blancas en el piso 🍿, esta CAMINANDO DESNUDOO EL HDP ",
   "Hay un olor a manteca mantecosa en el aire ¡estás cerca!",
   "Se escucha un grito a lo lejos.",
