@@ -121,7 +121,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#120808;color:#fff;fon
   <canvas id="cv"></canvas>
   <div id="hud"><span id="hudRoom"></span><span id="hudProg"></span><span></span></div>
   <div id="qBox"><div id="qText"></div></div>
-  <div id="hint">Tocá la puerta correcta · arrastrá para mirar alrededor</div>
+  <div id="hint">Tocá la puerta correcta </div>
   <div id="banner"></div>
   <div id="mission">
     <div class="card">
@@ -146,9 +146,9 @@ html,body{margin:0;height:100%;overflow:hidden;background:#120808;color:#fff;fon
   <div id="winFx" class="winFx"></div>
   <div class="wrap">
     <div class="popWrap bounce"><div id="winPop"></div><button id="giftBtn" aria-label="Abrir regalo"></button></div>
-    <h1>¡Lo encontraste!</h1>
+    <h1>¡LO ENCONTRASTE!</h1>
     <p id="winMsg"></p>
-    <p class="giftHint">🎁 ¡Tocá el regalito!</p>
+    <p class="giftHint">🎁 ¡TOCA EL RAGLO QUE TIENE EN LAS MANOS ES PARA VOS!</p>
     <button class="btn ghost" id="btnAgain">Jugar de nuevo</button>
   </div>
   <div id="letter">
@@ -166,7 +166,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#120808;color:#fff;fon
 /* =====================================================================
    ★★★ 1) CONFIGURACIÓN GENERAL ★★★
    ===================================================================== */
-const TITULO = "Buscando a Fran Popcorns";
+const TITULO = "Hace desafios para encontrar a Fran Popcorns";
 
 // Nombre del peluche (aparece en los mensajes).
 const NOMBRE = "Fran Popcorns";
@@ -177,12 +177,12 @@ const MODO_PRUEBA = false;
 // Mensajes tristes cuando elige la puerta equivocada (se elige uno al azar).
 // No se reinicia el recorrido: vuelve a intentar la misma habitación.
 const MENSAJES_TRISTES = [
-  `${NOMBRE} está triste… ¿cómo no vas a saber esto? 😢`,
-  `${NOMBRE} esperaba más de vos. ¿Cómo no te acordás de esto? 💔`,
+  `${NOMBRE} está triste… porque no lo conoces 😢`,
+  `${NOMBRE} esperaba más de vos. ¿Cómo no sabes esto? 💔`,
   `${NOMBRE} TE ODIA por no saberlo`,
 ];
 
-const TEXTO_FINAL = `¡${NOMBRE} AYUDAAA NO SE DONDE ESTOY ! Amor sos vos?, toca el regalo `;
+const TEXTO_FINAL = ` AMOR GRACIAS POR BUSCARME TE EXTRAÑE, ME PERDI VOLVIENDO A CASA `;
 
 // ★ LA CARTA que se abre al tocar el regalito ★
 // (Podés escribir varios renglones; los saltos de línea se respetan.)
@@ -282,21 +282,21 @@ const MISIONES = [
   { tipo:'atrapar',  d:5,  titulo:'Lluvia de maíz',       desc:'Arrastrá el balde y atrapá los pururu. ¡Esquivá las bombas! 💣' },
   { tipo:'mash',     d:6,  titulo:'Maíz a reventar',      desc:'Tocá el botón lo más rápido que puedas para calentar el choclo antes de que se enfríe.' },
   { tipo:'tap',      d:7,  titulo:'Granitos veloces',     desc:'Ahora los granitos desaparecen más rápido. ¡Vos podes!' },
-  { tipo:'seq',      d:8,  titulo:'Simón avanzado',       desc:'Una secuencia más larga y más rápida. Concentrate mira que es muy dificil .' },
+  { tipo:'odd',      d:8,  titulo:'El intruso',           desc:'Una secuencia más larga y más rápida. Concentrate mira que es muy dificil .' },
   { tipo:'timing',   d:9,  titulo:'Pulso de acero',       desc:'La zona verde es diminuta y la barra vuela. Frená con precisión.' },
   { tipo:'atrapar',  d:10, titulo:'Tormenta final',       desc:'La última lluvia de choclo. Muchas bombas, mucha velocidad. ¡Vos podés!' },
 ];
 
 const PISTAS = [
-  "Encontraste huellitas de popocorn",
+  "Encontraste huellitas seran de  popocorn?",
   "Hay un granito de pochoclo tibio… Fran Popcorns estuvo acá.",
-  "Se escuchan unos pasitos en la otra habitación, sera el?.",
-  "Una notita: «Vas por buen camino, ¡seguime!»",
-  "Un envoltorio de rayas rojas y blancas tirado en el piso 🍿, esta desnudoooo ",
+  "Se escuchan unos pasitos en la otra habitación, sera el??.",
+  "Una notita: «AYUDAA»",
+  "Hay una ropa de rayas rojas y blancas en el piso 🍿, esta CAMINANDO DESNUDOO EL HDP ",
   "Hay un olor a manteca mantecosa en el aire ¡estás cerca!",
-  "Se escucha un «pop, pop» a lo lejos.",
+  "Se escucha un grito a lo lejos.",
   "Hay una gorra blanca, se le abra caido a Fran popocorn.",
-  "Ves una sombra pero no sabes que es.",
+  "Ves una sombra pero no sabes si es el.",
   "¡Hay algo amarillo y esponjoso atras de las puertasss!",
 ];
 
@@ -385,7 +385,7 @@ function show(id){
 $('#gameTitle').textContent = TITULO;
 document.title = TITULO;
 $('#titlePop').innerHTML = popSVG(210);
-$('#titleMsg').textContent = `${NOMBRE} se perdió… ¿Lo ayudás a encontrar el camino de vuelta?`;
+$('#titleMsg').textContent = `${NOMBRE} se perdió… ¿Te animas a buscarlo?`;
 $('#btnPlay').onclick = () => { beep(520,.12); beep(780,.15); if(HISTORIA.length) startStory(); else startGame(0); };
 
 /* ---------- historia ---------- */
@@ -490,7 +490,7 @@ function playMission(){
       setBtn('Ir a las puertas ▶', openDoors);
     } else {
       beep(200,.3,'sawtooth');
-      $('#mDesc').textContent = '¡Ups! No lo lograste. ¡Probá de nuevo!';
+      $('#mDesc').textContent = '¡UH SOS MALISIMA! ¡Probá de nuevo!';
       body.innerHTML = `<div class="popBig"><div class="sad">${popSVG(110)}</div></div>`;
       setBtn('Reintentar', playMission);
     }
